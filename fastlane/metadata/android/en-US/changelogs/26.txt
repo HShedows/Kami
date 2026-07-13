@@ -1,0 +1,12 @@
+- Updated to Mihon v0.20.1.
+
+- From Komikku
+	•Add Custom Theme with 3 Selectable Color
+
+- From J2K
+	•Minimal swipe between categories
+	•Minimal Reading mode settings
+
+- Some minor fix
+
+	Mihon changelog: https://github.com/mihonapp/mihon/blob/main/CHANGELOG.md

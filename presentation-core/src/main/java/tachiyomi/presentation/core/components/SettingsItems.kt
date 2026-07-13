@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -51,8 +52,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import tachiyomi.i18n.MR
 import dev.icerock.moko.resources.StringResource
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.TriState
@@ -416,6 +419,98 @@ fun SpinnerItem(
                         onClick = {
                             onSelect(index)
                             expanded = false
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Yokai-style spinner for multiple selection: plain row with label on the left,
+ * selected values in smaller secondary text on the right, and a chevron.
+ * Tapping shows a [DropdownMenu] with checkboxes.
+ */
+@Composable
+fun MultiSpinnerItem(
+    label: String,
+    options: Array<out Any?>,
+    selectedIndices: Set<Int>,
+    onSelect: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expanded = true }
+            .padding(
+                horizontal = SettingsItemsPaddings.Horizontal,
+                vertical = SettingsItemsPaddings.Vertical,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
+        )
+
+        Box {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val text = if (selectedIndices.isEmpty()) {
+                    stringResource(MR.strings.none)
+                } else {
+                    selectedIndices.joinToString { options.getOrNull(it)?.toString().orEmpty() }
+                }
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
+                    modifier = Modifier
+                        .padding(end = 4.dp)
+                        .widthIn(max = 120.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Icon(
+                    imageVector = if (expanded) {
+                        Icons.Filled.KeyboardArrowUp
+                    } else {
+                        Icons.Filled.KeyboardArrowDown
+                    },
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+
+            androidx.compose.material3.DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                options.forEachIndexed { index, text ->
+                    val isSelected = selectedIndices.contains(index)
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = text.toString(),
+                                color = if (isSelected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                },
+                            )
+                        },
+                        leadingIcon = {
+                            Checkbox(
+                                checked = isSelected,
+                                onCheckedChange = null,
+                            )
+                        },
+                        onClick = {
+                            onSelect(index)
                         },
                     )
                 }

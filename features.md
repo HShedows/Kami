@@ -10,6 +10,7 @@
 - [Add indicator for un-finished reading & has more un-read chapters](https://github.com/komikku-app/komikku/pull/992/changes/9ce8c20db8e01816104abf1e3ee1d0a05a2f55e8)
 - [Show reading progress in History screen](https://github.com/komikku-app/komikku/pull/992/changes/aa70db542cd12be032190c2a25ee95cb22eceb25)
 - [Smaller Tap Zone](https://github.com/komikku-app/komikku/pull/867)
+- Add Custom Theme with 3 Selectable Color
 
 ---
 
@@ -18,6 +19,11 @@
 - [Disable Swipe Between Pages](https://github.com/mihonapp/mihon/issues/2775)
 - [Paged Library Mode (***with Page Turn Button***)](https://github.com/mihonapp/mihon/issues/1070)
 - [Hide smart update icon when disabled](https://github.com/mihonapp/mihon/pull/1031)
+
+---
+**From J2K**
+- Minimal swipe between categories
+- Minimal Reading mode settings
 
 ---
 

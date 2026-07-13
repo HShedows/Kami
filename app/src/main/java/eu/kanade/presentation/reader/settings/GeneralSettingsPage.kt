@@ -12,6 +12,7 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.util.system.hasDisplayCutout
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.CheckboxItem
+import tachiyomi.presentation.core.components.MultiSpinnerItem
 import tachiyomi.presentation.core.components.SpinnerItem
 import tachiyomi.presentation.core.components.SliderItem
 import tachiyomi.presentation.core.i18n.pluralStringResource
@@ -62,22 +63,27 @@ internal fun ColumnScope.GeneralPage(screenModel: ReaderSettingsScreenModel) {
 
     val verticalNavigatorModes by screenModel.preferences.verticalNavigator.collectAsState()
 
-    SettingsChipRow(MR.strings.pref_vertical_navigator) {
-        ReadingMode.entries.filter { it != ReadingMode.DEFAULT }.forEach { mode ->
-            FilterChip(
-                selected = verticalNavigatorModes.contains(mode),
-                onClick = {
-                    val newModes = if (verticalNavigatorModes.contains(mode)) {
-                        verticalNavigatorModes - mode
-                    } else {
-                        verticalNavigatorModes + mode
-                    }
-                    screenModel.preferences.verticalNavigator.set(newModes)
-                },
-                label = { Text(stringResource(mode.stringRes)) },
-            )
-        }
+    val verticalNavigatorOptions = ReadingMode.entries.filter { it != ReadingMode.DEFAULT }
+    val verticalNavigatorLabels = verticalNavigatorOptions.map { stringResource(it.stringRes) }
+    val selectedIndices = remember(verticalNavigatorModes) {
+        verticalNavigatorOptions.mapIndexedNotNull { index, mode ->
+            if (verticalNavigatorModes.contains(mode)) index else null
+        }.toSet()
     }
+    MultiSpinnerItem(
+        label = stringResource(MR.strings.pref_vertical_navigator),
+        options = verticalNavigatorLabels.toTypedArray(),
+        selectedIndices = selectedIndices,
+        onSelect = { index ->
+            val mode = verticalNavigatorOptions[index]
+            val newModes = if (verticalNavigatorModes.contains(mode)) {
+                verticalNavigatorModes - mode
+            } else {
+                verticalNavigatorModes + mode
+            }
+            screenModel.preferences.verticalNavigator.set(newModes)
+        },
+    )
 
     if (verticalNavigatorModes.isNotEmpty()) {
         val verticalNavigatorHeightPref = screenModel.preferences.verticalNavigatorHeight
