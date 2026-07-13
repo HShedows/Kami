@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import eu.kanade.tachiyomi.ui.library.LibraryItem
 import tachiyomi.domain.category.model.Category
@@ -36,6 +37,15 @@ internal fun LibraryList(
     hopperInitialized: Boolean,
     onHopperInitialized: () -> Unit,
 ) {
+    // "Items per column" slider (manualRows) controls how many list items
+    // fit on screen, which also sets each item's height via MangaListItem's
+    // entries/containerHeight parameters. When 0 (auto), fall back to
+    // whatever the grid's column count passed as entries (usually 0 too,
+    // which gives MangaListItem its default 56dp height).
+    val effectiveEntries = if (manualRows > 0) manualRows else entries
+
+    val density = LocalDensity.current
+
     val cell: @Composable (LibraryItem) -> Unit = { libraryItem ->
         val manga = libraryItem.libraryManga.manga
         MangaListItem(
@@ -63,7 +73,7 @@ internal fun LibraryList(
             } else {
                 null
             },
-            entries = entries,
+            entries = effectiveEntries,
             containerHeight = containerHeight,
         )
     }
@@ -76,7 +86,16 @@ internal fun LibraryList(
             columns = 1,
             manualRows = manualRows,
             contentPadding = contentPadding,
-            cellHeightForWidth = { 56.dp },
+            // When manualRows > 0, item height = containerHeight / manualRows,
+            // matching MangaListItem's own size formula. When 0, use the
+            // default 56dp fixed height.
+            cellHeightForWidth = { _ ->
+                if (manualRows > 0 && containerHeight > 0) {
+                    with(density) { (containerHeight / manualRows).toDp() }
+                } else {
+                    56.dp
+                }
+            },
             cell = cell,
             categories = categories,
             categoryIndex = categoryIndex,
