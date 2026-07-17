@@ -31,6 +31,8 @@ internal fun LibraryComfortableGrid(
     hopperOffsetX: androidx.compose.animation.core.Animatable<Float, *>,
     hopperInitialized: Boolean,
     onHopperInitialized: () -> Unit,
+    hopperSavedPosition: Int,
+    onHopperPositionChanged: (Int) -> Unit,
 ) {
     val cell: @Composable (LibraryItem) -> Unit = { libraryItem ->
         val manga = libraryItem.libraryManga.manga
@@ -83,6 +85,8 @@ internal fun LibraryComfortableGrid(
             hopperOffsetX = hopperOffsetX,
             hopperInitialized = hopperInitialized,
             onHopperInitialized = onHopperInitialized,
+            hopperSavedPosition = hopperSavedPosition,
+            onHopperPositionChanged = onHopperPositionChanged,
         )
         return
     }

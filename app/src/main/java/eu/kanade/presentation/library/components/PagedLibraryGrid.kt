@@ -102,6 +102,8 @@ internal fun <T> PagedLibraryGrid(
     hopperOffsetX: Animatable<Float, *>,
     hopperInitialized: Boolean,
     onHopperInitialized: () -> Unit,
+    hopperSavedPosition: Int,
+    onHopperPositionChanged: (Int) -> Unit,
 ) {
     val layoutDirection = LocalLayoutDirection.current
     val horizontalSpacing = CommonMangaItemDefaults.GridHorizontalSpacer
@@ -259,6 +261,8 @@ internal fun <T> PagedLibraryGrid(
                     offsetX = hopperOffsetX,
                     initialized = hopperInitialized,
                     onInitialized = onHopperInitialized,
+                    savedPosition = hopperSavedPosition,
+                    onPositionChanged = onHopperPositionChanged,
                 )
             }
         }
@@ -280,6 +284,8 @@ private fun CategoryHopper(
     offsetX: Animatable<Float, *>,
     initialized: Boolean,
     onInitialized: () -> Unit,
+    savedPosition: Int,
+    onPositionChanged: (Int) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(value = false) }
     val density = LocalDensity.current
@@ -311,11 +317,16 @@ private fun CategoryHopper(
 
     val restingY = (boundsPx.height - bottomInsetPx - hopperSizePx.height - marginPx).toFloat()
 
-    // Start docked at the right, once we know the hopper's real size.
+    // Start docked at the saved position (or right by default), once we know the hopper's real size.
     LaunchedEffect(hopperSizePx) {
         if (!initialized && hopperSizePx != IntSize.Zero) {
             onInitialized()
-            offsetX.snapTo(rightX())
+            val targetX = when (savedPosition) {
+                0 -> leftX()
+                1 -> centerX()
+                else -> rightX()
+            }
+            offsetX.snapTo(targetX)
         }
     }
 
@@ -326,7 +337,16 @@ private fun CategoryHopper(
             .pointerInput(Unit) {
                 detectHorizontalDragGestures(
                     onDragEnd = {
-                        scope.launch { offsetX.animateTo(nearestAnchor(offsetX.value)) }
+                        scope.launch {
+                            val target = nearestAnchor(offsetX.value)
+                            offsetX.animateTo(target)
+                            val index = when (target) {
+                                leftX() -> 0
+                                centerX() -> 1
+                                else -> 2
+                            }
+                            onPositionChanged(index)
+                        }
                     },
                     onDragCancel = {
                         scope.launch { offsetX.animateTo(nearestAnchor(offsetX.value)) }

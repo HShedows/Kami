@@ -24,7 +24,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalLayoutDirection
 import eu.kanade.core.preference.PreferenceMutableState
 import eu.kanade.tachiyomi.ui.library.LibraryItem
@@ -83,6 +85,12 @@ fun LibraryContent(
 
         val libraryPreferences = remember { Injekt.get<LibraryPreferences>() }
         val showHopper by libraryPreferences.showCategoryHopper.collectAsState()
+        val hopperPosition by libraryPreferences.categoryHopperPosition.collectAsState()
+
+        // Hoisted here so the hopper position survives category page swaps
+        // and library navigation.
+        val hopperOffsetX = remember { Animatable(0f) }
+        var hopperInitialized by remember { mutableStateOf(false) }
 
         if (showingTabs) {
             LaunchedEffect(categories) {
@@ -160,42 +168,47 @@ fun LibraryContent(
                     .fillMaxSize()
                     .nestedScroll(swipeScrollConnection)
                     .pointerInput(categories.size) {
-                        var velocityX = 0f
-                        var lastEventTime = 0L
-                        var lastX = 0f
+                        val velocityTracker = VelocityTracker()
 
                         awaitPointerEventScope {
                             while (true) {
-                                // Default (Main) pass — children get events too, so the
-                                // category hopper's drag gestures still work. Scroll is
-                                // blocked by swipeScrollConnection.onPreScroll instead.
-                                val event = awaitPointerEvent()
-                                val pointer = event.changes.firstOrNull() ?: continue
+                                // Pass 1: Initial (intercept from children)
+                                val eventInitial = awaitPointerEvent(PointerEventPass.Initial)
+                                val pointerInitial = eventInitial.changes.firstOrNull() ?: continue
+
+                                if (locked && !cancelled) {
+                                    pointerInitial.consume()
+                                }
+
+                                // Pass 2: Main (cooperate with children like the hopper)
+                                val eventMain = awaitPointerEvent(PointerEventPass.Main)
+                                val pointer = eventMain.changes.firstOrNull() ?: continue
 
                                 when {
                                     pointer.pressed && !pointer.previousPressed -> {
                                         startX = pointer.position.x
                                         startY = pointer.position.y
-                                        lastX = pointer.position.x
-                                        lastEventTime = System.currentTimeMillis()
-                                        velocityX = 0f
+                                        velocityTracker.resetTracking()
+                                        velocityTracker.addPosition(pointer.uptimeMillis, pointer.position)
                                         locked = false
                                         cancelled = false
                                     }
                                     pointer.pressed -> {
-                                        val dx = pointer.position.x - lastX
-                                        val now = System.currentTimeMillis()
-                                        val dt = (now - lastEventTime).coerceAtLeast(1)
-                                        velocityX = dx / dt * 1000f
-                                        lastX = pointer.position.x
-                                        lastEventTime = now
+                                        if (!locked && pointer.isConsumed) {
+                                            cancelled = true
+                                        }
+
+                                        velocityTracker.addPosition(pointer.uptimeMillis, pointer.position)
 
                                         val diffX = pointer.position.x - startX
                                         val diffY = pointer.position.y - startY
 
                                         if (!locked && !cancelled) {
                                             when {
-                                                abs(diffX) > 50f -> locked = true  // swipe wins
+                                                abs(diffX) > 50f -> {
+                                                    locked = true // swipe wins
+                                                    pointer.consume()
+                                                }
                                                 abs(diffY) > 50f -> cancelled = true // scroll wins
                                             }
                                         }
@@ -207,6 +220,8 @@ fun LibraryContent(
                                         }
                                     }
                                     !pointer.pressed -> {
+                                        if (locked && !cancelled) pointer.consume()
+                                        val velocityX = velocityTracker.calculateVelocity().x
                                         val diffX = pointer.position.x - startX
                                         if (locked && !cancelled &&
                                             abs(diffX) >= SWIPE_THRESHOLD &&
@@ -277,6 +292,11 @@ fun LibraryContent(
                     scope.launch { pagerState.animateScrollToPage(it) }
                 },
                 showHopper = showHopper,
+                hopperOffsetX = hopperOffsetX,
+                hopperInitialized = hopperInitialized,
+                onHopperInitialized = { hopperInitialized = true },
+                hopperSavedPosition = hopperPosition,
+                onHopperPositionChanged = { libraryPreferences.categoryHopperPosition.set(it) },
             )
         }
 

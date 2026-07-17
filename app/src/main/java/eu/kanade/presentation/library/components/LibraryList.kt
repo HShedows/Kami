@@ -36,6 +36,8 @@ internal fun LibraryList(
     hopperOffsetX: androidx.compose.animation.core.Animatable<Float, *>,
     hopperInitialized: Boolean,
     onHopperInitialized: () -> Unit,
+    hopperSavedPosition: Int,
+    onHopperPositionChanged: (Int) -> Unit,
 ) {
     // "Items per column" slider (manualRows) controls how many list items
     // fit on screen, which also sets each item's height via MangaListItem's
@@ -104,6 +106,8 @@ internal fun LibraryList(
             hopperOffsetX = hopperOffsetX,
             hopperInitialized = hopperInitialized,
             onHopperInitialized = onHopperInitialized,
+            hopperSavedPosition = hopperSavedPosition,
+            onHopperPositionChanged = onHopperPositionChanged,
         )
         return
     }

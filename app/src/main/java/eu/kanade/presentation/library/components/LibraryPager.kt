@@ -53,16 +53,15 @@ fun LibraryPager(
     categories: List<Category>,
     onSelectCategory: (Int) -> Unit,
     showHopper: Boolean,
+    hopperOffsetX: Animatable<Float, *>,
+    hopperInitialized: Boolean,
+    onHopperInitialized: () -> Unit,
+    hopperSavedPosition: Int,
+    onHopperPositionChanged: (Int) -> Unit,
     pageTranslationX: Animatable<Float, *>,
     modifier: Modifier = Modifier,
 ) {
     var containerHeight by remember { mutableIntStateOf(0) }
-
-    // Hoisted here so the hopper position survives category page swaps.
-    // If these lived inside CategoryHopper (or PagedLibraryGrid), each new
-    // category page would create fresh state and reset the position.
-    val hopperOffsetX = remember { Animatable(0f) }
-    var hopperInitialized by remember { mutableStateOf(false) }
 
     HorizontalPager(
         modifier = modifier
@@ -82,21 +81,12 @@ fun LibraryPager(
             return@HorizontalPager
         }
 
-        // Apply the rubber-band translationX only to the current page —
-        // adjacent pages stay in place since they're invisible during the
-        // gesture anyway (userScrollEnabled = false).
-        val tx = if (page == state.currentPage) pageTranslationX else null
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .then(
-                    if (tx != null) {
-                        Modifier.graphicsLayer { translationX = tx.value }
-                    } else {
-                        Modifier
-                    },
-                ),
+                .graphicsLayer {
+                    translationX = if (page == state.currentPage) pageTranslationX.value else 0f
+                },
         ) {
             val category = getCategoryForPage(page)
             val items = getItemsForCategory(category)
@@ -140,7 +130,9 @@ fun LibraryPager(
                         showHopper = showHopper,
                         hopperOffsetX = hopperOffsetX,
                         hopperInitialized = hopperInitialized,
-                        onHopperInitialized = { hopperInitialized = true },
+                        onHopperInitialized = onHopperInitialized,
+                        hopperSavedPosition = hopperSavedPosition,
+                        onHopperPositionChanged = onHopperPositionChanged,
                     )
                 }
                 LibraryDisplayMode.CompactGrid, LibraryDisplayMode.CoverOnlyGrid -> {
@@ -163,7 +155,9 @@ fun LibraryPager(
                         showHopper = showHopper,
                         hopperOffsetX = hopperOffsetX,
                         hopperInitialized = hopperInitialized,
-                        onHopperInitialized = { hopperInitialized = true },
+                        onHopperInitialized = onHopperInitialized,
+                        hopperSavedPosition = hopperSavedPosition,
+                        onHopperPositionChanged = onHopperPositionChanged,
                     )
                 }
                 LibraryDisplayMode.ComfortableGrid -> {
@@ -185,7 +179,9 @@ fun LibraryPager(
                         showHopper = showHopper,
                         hopperOffsetX = hopperOffsetX,
                         hopperInitialized = hopperInitialized,
-                        onHopperInitialized = { hopperInitialized = true },
+                        onHopperInitialized = onHopperInitialized,
+                        hopperSavedPosition = hopperSavedPosition,
+                        onHopperPositionChanged = onHopperPositionChanged,
                     )
                 }
             } // end when
