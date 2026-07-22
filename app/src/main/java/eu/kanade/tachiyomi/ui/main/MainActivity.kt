@@ -107,7 +107,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import logcat.LogPriority
 import mihon.core.migration.Migrator
-import mihon.feature.support.SupportUsScreen
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.system.logcat

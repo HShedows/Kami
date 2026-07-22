@@ -101,7 +101,7 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
-import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsScreenModel
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsViewModel
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.R2LPagerViewer
@@ -208,7 +208,7 @@ class ReaderActivity : BaseActivity() {
             }
             NotificationReceiver.dismissNotification(this, manga.hashCode(), Notifications.ID_NEW_CHAPTERS)
 
-            lifecycleScope.launchNonCancellable {
+            lifecycleScope.launch {
                 val initResult = viewModel.init(manga, chapter)
                 if (!initResult.getOrDefault(false)) {
                     val exception = initResult.exceptionOrNull() ?: IllegalStateException("Unknown err")
@@ -280,8 +280,8 @@ class ReaderActivity : BaseActivity() {
     private fun ReaderActivityBinding.setComposeOverlay(): Unit = composeOverlay.setComposeContent {
         val state by viewModel.state.collectAsState()
         val showPageNumber by readerPreferences.showPageNumber.collectAsState()
-        val settingsScreenModel = remember {
-            ReaderSettingsScreenModel(
+        val settingsviewModel = remember {
+            ReaderSettingsViewModel(
                 readerState = viewModel.state,
                 onChangeReadingMode = viewModel::setMangaReadingMode,
                 onChangeOrientation = viewModel::setMangaOrientationType,
@@ -334,13 +334,13 @@ class ReaderActivity : BaseActivity() {
                     onDismissRequest = onDismissRequest,
                     onShowMenus = { setMenuVisibility(true) },
                     onHideMenus = { setMenuVisibility(false) },
-                    screenModel = settingsScreenModel,
+                    viewModel = settingsviewModel,
                 )
             }
             is ReaderViewModel.Dialog.ReadingModeSelect -> {
                 ReadingModeSelectDialog(
                     onDismissRequest = onDismissRequest,
-                    screenModel = settingsScreenModel,
+                    viewModel = settingsviewModel,
                     onChange = { stringRes ->
                         menuToggleToast?.cancel()
                         if (!readerPreferences.showReadingMode.get()) {
@@ -352,7 +352,7 @@ class ReaderActivity : BaseActivity() {
             is ReaderViewModel.Dialog.OrientationModeSelect -> {
                 OrientationSelectDialog(
                     onDismissRequest = onDismissRequest,
-                    screenModel = settingsScreenModel,
+                    viewModel = settingsviewModel,
                     onChange = { stringRes ->
                         menuToggleToast?.cancel()
                         menuToggleToast = toast(stringRes)
