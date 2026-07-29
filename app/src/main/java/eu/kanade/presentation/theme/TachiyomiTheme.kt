@@ -25,6 +25,7 @@ import eu.kanade.presentation.theme.colorscheme.TachiyomiColorScheme
 import eu.kanade.presentation.theme.colorscheme.TakoColorScheme
 import eu.kanade.presentation.theme.colorscheme.TealTurqoiseColorScheme
 import eu.kanade.presentation.theme.colorscheme.TidalWaveColorScheme
+import eu.kanade.presentation.theme.colorscheme.TokyoNightColorScheme
 import eu.kanade.presentation.theme.colorscheme.YinYangColorScheme
 import eu.kanade.presentation.theme.colorscheme.YotsubaColorScheme
 import tachiyomi.presentation.core.util.collectAsState
@@ -112,6 +113,7 @@ private fun getThemeColorScheme(
 private val colorSchemes: Map<AppTheme, BaseColorScheme> = mapOf(
     AppTheme.DEFAULT to TachiyomiColorScheme,
     AppTheme.CATPPUCCIN to CatppuccinColorScheme,
+    AppTheme.TOKYONIGHT to TokyoNightColorScheme,
     AppTheme.GREEN_APPLE to GreenAppleColorScheme,
     AppTheme.LAVENDER to LavenderColorScheme,
     AppTheme.MIDNIGHT_DUSK to MidnightDuskColorScheme,
