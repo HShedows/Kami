@@ -1,0 +1,5 @@
+- Updated to Mihon v0.20.2
+
+- Some minor fix and improvement
+
+	Mihon changelog: https://github.com/mihonapp/mihon/blob/main/CHANGELOG.md
