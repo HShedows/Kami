@@ -25,8 +25,8 @@ android {
     defaultConfig {
         applicationId = "app.kami"
 
-        versionCode = 27
-        versionName = "0.20.2"
+        versionCode = 29
+        versionName = "0.20.4"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getLatestCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getLatestCommitSha()}\"")
@@ -201,6 +201,8 @@ dependencies {
     implementation(libs.bundles.kotlinx.coroutines)
 
     implementation(libs.sqldelight.async)
+
+    implementation(libs.kotlinx.datetime)
 
     // AndroidX libraries
     implementation(libs.androidx.annotation)
